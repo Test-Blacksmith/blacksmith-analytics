@@ -16,9 +16,8 @@ jobs:
           DURATION=$((END - START))
           
           echo "## ⚡ Quick Job Profile" >> $GITHUB_STEP_SUMMARY
-          echo "- **Duration**: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
-          echo "- **Startup overhead**: ~30% of total time" >> $GITHUB_STEP_SUMMARY
-          echo "- **Cost efficiency**: Poor (high overhead ratio)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Overhead: ~30% of total" >> $GITHUB_STEP_SUMMARY
 
   medium-task:
     name: "Medium Job (5m)"
@@ -27,19 +26,15 @@ jobs:
       - name: Medium workload
         run: |
           START=$(date +%s)
-          
           for i in {1..10}; do
-            echo "Task $i of 10..."
             sleep 30
           done
-          
           END=$(date +%s)
           DURATION=$((END - START))
           
           echo "## ⚙️ Medium Job Profile" >> $GITHUB_STEP_SUMMARY
-          echo "- **Duration**: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
-          echo "- **Startup overhead**: ~3% of total time" >> $GITHUB_STEP_SUMMARY
-          echo "- **Cost efficiency**: Excellent (optimal range)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Overhead: ~3% of total" >> $GITHUB_STEP_SUMMARY
 
   long-task:
     name: "Long Job (10m)"
@@ -48,154 +43,42 @@ jobs:
       - name: Long workload
         run: |
           START=$(date +%s)
-          
           for i in {1..20}; do
-            echo "Task $i of 20..."
             sleep 30
           done
-          
           END=$(date +%s)
           DURATION=$((END - START))
           
           echo "## 🔄 Long Job Profile" >> $GITHUB_STEP_SUMMARY
-          echo "- **Duration**: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
-          echo "- **Startup overhead**: ~1.5% of total time" >> $GITHUB_STEP_SUMMARY
-          echo "- **Cost efficiency**: Good (low overhead)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Overhead: ~1.5% of total" >> $GITHUB_STEP_SUMMARY
 
   analysis:
-    name: "Cost-Performance Analysis"
+    name: "Cost Analysis"
     needs: [quick-task, medium-task, long-task]
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Generate comprehensive ROI analysis
+      - name: Generate ROI analysis
         run: |
           echo "## 💰 Cost-Performance Analysis" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Job Duration Impact on Cost Efficiency" >> $GITHUB_STEP_SUMMARY
+          echo "### Job Duration vs Cost Efficiency" >> $GITHUB_STEP_SUMMARY
+          echo "| Duration | Overhead | Efficiency | Recommendation |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|----------|------------|----------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| <1min | 30-40% | Poor | Batch tasks |" >> $GITHUB_STEP_SUMMARY
+          echo "| 2-5min | 5-10% | Excellent | Ideal |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5-15min | 2-5% | Excellent | Ideal |" >> $GITHUB_STEP_SUMMARY
+          echo "| >15min | 1-2% | Good | Consider split |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Duration | Startup Overhead | Efficiency | Cost/Minute | Recommendation |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|------------------|------------|-------------|----------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| <1min    | ~30-40%          | ❌ Poor     | High        | Batch tasks    |" >> $GITHUB_STEP_SUMMARY
-          echo "| 1-2min   | ~15-20%          | ⚠️ Fair     | Medium      | Consider batching |" >> $GITHUB_STEP_SUMMARY
-          echo "| 2-5min   | ~5-10%           | ✅ Good     | Optimal     | **Ideal range** |" >> $GITHUB_STEP_SUMMARY
-          echo "| 5-15min  | ~2-5%            | ✅ Excellent | Very good   | **Ideal range** |" >> $GITHUB_STEP_SUMMARY
-          echo "| >15min   | ~1-2%            | ✅ Good     | Good        | Consider splitting |" >> $GITHUB_STEP_SUMMARY
+          echo "### ROI Calculation" >> $GITHUB_STEP_SUMMARY
+          echo "Reducing 15min build to 8min = 7min saved" >> $GITHUB_STEP_SUMMARY
+          echo "- 20 builds/day × 7min = 140min/day" >> $GITHUB_STEP_SUMMARY
+          echo "- At 100 USD/hour = 233 USD/day saved" >> $GITHUB_STEP_SUMMARY
+          echo "- Annual value = 60k USD per developer" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Understanding Startup Overhead" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Every job has fixed costs:" >> $GITHUB_STEP_SUMMARY
-          echo "- Runner provisioning: ~3-5s" >> $GITHUB_STEP_SUMMARY
-          echo "- Environment setup: ~2-3s" >> $GITHUB_STEP_SUMMARY
-          echo "- Teardown/cleanup: ~1-2s" >> $GITHUB_STEP_SUMMARY
-          echo "- **Total overhead**: ~6-10s per job" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "For a 30s job: 25% overhead" >> $GITHUB_STEP_SUMMARY
-          echo "For a 5min job: 3% overhead" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Optimization Strategies" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**1. Batch Short Tasks**" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`yaml" >> $GITHUB_STEP_SUMMARY
-          echo "# ❌ Bad: 10 jobs × 30s = 100s overhead" >> $GITHUB_STEP_SUMMARY
-          echo "- lint-file-1" >> $GITHUB_STEP_SUMMARY
-          echo "- lint-file-2" >> $GITHUB_STEP_SUMMARY
-          echo "- lint-file-3..." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "# ✅ Good: 1 job × 300s = 10s overhead" >> $GITHUB_STEP_SUMMARY
-          echo "- lint-all-files" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "**2. Split Very Long Jobs**" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`yaml" >> $GITHUB_STEP_SUMMARY
-          echo "# ❌ Bad: 1 job × 60min = blocks other work" >> $GITHUB_STEP_SUMMARY
-          echo "- run-all-tests" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "# ✅ Good: 4 jobs × 15min = parallelizable" >> $GITHUB_STEP_SUMMARY
-          echo "- test-suite-1" >> $GITHUB_STEP_SUMMARY
-          echo "- test-suite-2" >> $GITHUB_STEP_SUMMARY
-          echo "- test-suite-3" >> $GITHUB_STEP_SUMMARY
-          echo "- test-suite-4" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### ROI Calculation Framework" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Time Savings = Developer Productivity**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "Scenario: Reducing build time from 15min to 8min" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Time saved per build: 7 minutes" >> $GITHUB_STEP_SUMMARY
-          echo "Builds per developer per day: 20" >> $GITHUB_STEP_SUMMARY
-          echo "Time saved per developer per day: 140 minutes = 2.3 hours" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Developer fully-loaded cost: \$100/hour" >> $GITHUB_STEP_SUMMARY
-          echo "Value created per developer per day: \$230" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "For a team of 10 developers:" >> $GITHUB_STEP_SUMMARY
-          echo "  Daily value: \$2,300" >> $GITHUB_STEP_SUMMARY
-          echo "  Annual value: \$575,000" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "And this doesn't include:" >> $GITHUB_STEP_SUMMARY
-          echo "  - Reduced context switching costs" >> $GITHUB_STEP_SUMMARY
-          echo "  - Improved developer satisfaction" >> $GITHUB_STEP_SUMMARY
-          echo "  - Faster time to market" >> $GITHUB_STEP_SUMMARY
-          echo "  - Lower infrastructure costs" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Cost vs Speed Tradeoffs" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Optimization | Cost | Speed Gain | When Worth It |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------------|------|------------|---------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Caching | Low | 60-80% | Always |" >> $GITHUB_STEP_SUMMARY
-          echo "| Parallelization | Medium | 40-70% | >5 independent tasks |" >> $GITHUB_STEP_SUMMARY
-          echo "| Larger runners | High | 20-40% | CPU-bound, high frequency |" >> $GITHUB_STEP_SUMMARY
-          echo "| Premium runners | Very High | 30-50% | Critical path only |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Predictability = Planning Power" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**With high variance (25% CV):**" >> $GITHUB_STEP_SUMMARY
-          echo "- Can't commit to tight SLAs" >> $GITHUB_STEP_SUMMARY
-          echo "- Must over-provision by 30-40% for safety" >> $GITHUB_STEP_SUMMARY
-          echo "- Difficult to forecast costs" >> $GITHUB_STEP_SUMMARY
-          echo "- Unpredictable developer experience" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**With low variance (5% CV):**" >> $GITHUB_STEP_SUMMARY
-          echo "- Can commit to aggressive SLAs with confidence" >> $GITHUB_STEP_SUMMARY
-          echo "- Right-size infrastructure (no over-provisioning)" >> $GITHUB_STEP_SUMMARY
-          echo "- Accurate Q4 cost forecasting" >> $GITHUB_STEP_SUMMARY
-          echo "- Consistent, reliable developer experience" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Blacksmith Value Proposition" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Not just faster - more predictable:**" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Consistent performance (low CV)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Detailed cost analytics" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Optimization recommendations" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ ROI tracking over time" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### What Sales Demos Don't Show" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Sales approach:**" >> $GITHUB_STEP_SUMMARY
-          echo "> \"Blacksmith makes your builds 2x faster!\"" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Engineering approach:**" >> $GITHUB_STEP_SUMMARY
-          echo "> \"Blacksmith reduces our 15min build to 8min with 5% variance," >> $GITHUB_STEP_SUMMARY
-          echo "> saving 2.3 hours per developer per day. For our 10-person team," >> $GITHUB_STEP_SUMMARY
-          echo "> that's \$575k annual value in recovered productivity, plus" >> $GITHUB_STEP_SUMMARY
-          echo "> predictable performance that enables accurate capacity planning" >> $GITHUB_STEP_SUMMARY
-          echo "> and SLA commitments. The reduced variance alone saves us 30%" >> $GITHUB_STEP_SUMMARY
-          echo "> in infrastructure over-provisioning costs.\"" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**One sounds like marketing. One sounds like engineering.**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "That's the difference this repository demonstrates." >> $GITHUB_STEP_SUMMARY
+          echo "### Key Insight" >> $GITHUB_STEP_SUMMARY
+          echo "Predictable performance enables:" >> $GITHUB_STEP_SUMMARY
+          echo "- Accurate SLA commitments" >> $GITHUB_STEP_SUMMARY
+          echo "- Precise capacity planning" >> $GITHUB_STEP_SUMMARY
+          echo "- No over-provisioning waste" >> $GITHUB_STEP_SUMMARY
