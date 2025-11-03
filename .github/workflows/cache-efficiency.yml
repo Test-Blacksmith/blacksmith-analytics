@@ -8,7 +8,7 @@ on:
 jobs:
   cold-start:
     name: "Cold Start (No Cache)"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Setup without cache
         uses: actions/setup-node@v4
@@ -31,7 +31,7 @@ jobs:
 
   warm-cache:
     name: "Warm Cache"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Create package files
         run: |
@@ -74,7 +74,7 @@ jobs:
 
   warm-cache-second-run:
     name: "Warm Cache (2nd Run)"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Create package files
         run: |
@@ -116,7 +116,7 @@ jobs:
   cache-analysis:
     name: "Cache ROI Analysis"
     needs: [cold-start, warm-cache, warm-cache-second-run]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: always()
     steps:
       - name: Generate insights
