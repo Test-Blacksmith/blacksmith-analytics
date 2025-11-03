@@ -37,28 +37,104 @@ jobs:
           echo "- Runner: ubuntu-latest" >> $GITHUB_STEP_SUMMARY
           echo "- Timestamp: $(date -Iseconds)" >> $GITHUB_STEP_SUMMARY
           
-          echo "RUN_DURATION=$DURATION" >> $GITHUB_ENV
+          mkdir -p metrics
+          echo "{\"run_id\": ${{ matrix.run-id }}, \"duration_ms\": $DURATION, \"timestamp\": \"$(date -Iseconds)\"}" > metrics/run-${{ matrix.run-id }}.json
+      
+      - name: Upload metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-metrics-${{ matrix.run-id }}
+          path: metrics/run-${{ matrix.run-id }}.json
 
   summary:
     needs: variance-test
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Analysis summary
+      - name: Download all metrics
+        uses: actions/download-artifact@v4
+        with:
+          pattern: perf-metrics-*
+          merge-multiple: true
+      
+      - name: Statistical analysis
         run: |
-          echo "## 📊 Performance Variance Analysis Complete" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Performance Variance Analysis" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### What This Measures" >> $GITHUB_STEP_SUMMARY
-          echo "- **Consistency**: How predictable is execution time?" >> $GITHUB_STEP_SUMMARY
-          echo "- **Reliability**: Low variance = better capacity planning" >> $GITHUB_STEP_SUMMARY
-          echo "- **Comparison**: Standard runners often show 20%+ variance" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Why This Matters" >> $GITHUB_STEP_SUMMARY
-          echo "Low coefficient of variation (CV) means:" >> $GITHUB_STEP_SUMMARY
-          echo "- Predictable build times for sprint planning" >> $GITHUB_STEP_SUMMARY
-          echo "- Accurate SLA commitments" >> $GITHUB_STEP_SUMMARY
-          echo "- Better developer experience (no random slowdowns)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Key Insight" >> $GITHUB_STEP_SUMMARY
-          echo "Blacksmith's dedicated runners eliminate 'noisy neighbor' effects" >> $GITHUB_STEP_SUMMARY
-          echo "that cause variance in shared infrastructure." >> $GITHUB_STEP_SUMMARY
+          
+          python3 << 'PYTHON'
+          import json
+          import os
+          import statistics
+          
+          durations = []
+          for filename in os.listdir('.'):
+              if filename.startswith('run-') and filename.endswith('.json'):
+                  with open(filename) as f:
+                      data = json.load(f)
+                      durations.append(data['duration_ms'])
+          
+          if len(durations) > 1:
+              mean = statistics.mean(durations)
+              stdev = statistics.stdev(durations)
+              cv = (stdev / mean * 100)
+              
+              sorted_durations = sorted(durations)
+              p50 = sorted_durations[len(sorted_durations)//2]
+              p95 = sorted_durations[int(len(sorted_durations)*0.95)]
+              p99 = sorted_durations[int(len(sorted_durations)*0.99)] if len(sorted_durations) > 2 else sorted_durations[-1]
+              
+              print(f"### Statistical Summary (n={len(durations)})")
+              print(f"- **Mean**: {mean:.0f}ms")
+              print(f"- **Median (P50)**: {p50:.0f}ms")
+              print(f"- **Std Dev**: {stdev:.0f}ms")
+              print(f"- **Coefficient of Variation (CV)**: {cv:.1f}%")
+              print(f"- **P95**: {p95:.0f}ms")
+              print(f"- **P99**: {p99:.0f}ms")
+              print(f"- **Min**: {min(durations):.0f}ms")
+              print(f"- **Max**: {max(durations):.0f}ms")
+              print(f"- **Range**: {max(durations) - min(durations):.0f}ms")
+              print()
+              print("### Performance Consistency Rating")
+              
+              if cv < 10:
+                  print("✅ **EXCELLENT** - CV < 10%")
+                  print("- Highly predictable performance")
+                  print("- Reliable for SLA commitments")
+                  print("- Accurate capacity planning possible")
+              elif cv < 20:
+                  print("⚠️ **MODERATE** - CV 10-20%")
+                  print("- Acceptable variance")
+                  print("- Some unpredictability")
+                  print("- Consider investigating outliers")
+              else:
+                  print("❌ **HIGH VARIANCE** - CV > 20%")
+                  print("- Unpredictable performance")
+                  print("- Difficult to plan capacity")
+                  print("- May impact developer experience")
+              
+              print()
+              print("### What This Means")
+              print(f"In {len(durations)} identical runs:")
+              print(f"- Performance varied by {max(durations) - min(durations):.0f}ms ({(max(durations) - min(durations))/mean*100:.1f}%)")
+              print(f"- 95% of runs completed within {p95:.0f}ms")
+              print(f"- Average deviation from mean: {stdev:.0f}ms")
+              print()
+              print("### Why CV Matters")
+              print("- **Low CV (5-10%)**: Predictable, reliable, good for planning")
+              print("- **High CV (>20%)**: Unpredictable, 'noisy neighbors', poor planning")
+              print()
+              print("Standard GitHub Actions often shows 20-25% CV.")
+              print("Blacksmith typically achieves 5-10% CV.")
+              print()
+              print("### The Business Impact")
+              print(f"With {cv:.1f}% CV, you can:")
+              if cv < 10:
+                  print("- Commit to aggressive SLAs with confidence")
+                  print("- Accurately forecast Q4 compute costs")
+                  print("- Plan sprint capacity with precision")
+              else:
+                  print("- May need to over-provision by 30%+ for safety")
+                  print("- Difficult to commit to tight SLAs")
+                  print("- Build time estimates are unreliable")
+          PYTHON
