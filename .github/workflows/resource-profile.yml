@@ -6,7 +6,7 @@ on:
 jobs:
   cpu-profile:
     name: "CPU Profiling"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: System information
         run: |
@@ -41,7 +41,7 @@ jobs:
 
   memory-profile:
     name: "Memory Profiling"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Memory information
         run: |
@@ -77,7 +77,7 @@ jobs:
 
   io-profile:
     name: "I/O Profiling"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Disk information
         run: |
@@ -107,7 +107,7 @@ jobs:
   summary:
     name: "Resource Analysis Summary"
     needs: [cpu-profile, memory-profile, io-profile]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: always()
     steps:
       - name: Generate analysis

@@ -6,7 +6,7 @@ on:
 jobs:
   quick-task:
     name: "Quick Job (30s)"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Quick workload
         run: |
@@ -21,7 +21,7 @@ jobs:
 
   medium-task:
     name: "Medium Job (5m)"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Medium workload
         run: |
@@ -38,7 +38,7 @@ jobs:
 
   long-task:
     name: "Long Job (10m)"
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Long workload
         run: |
@@ -56,7 +56,7 @@ jobs:
   analysis:
     name: "Cost Analysis"
     needs: [quick-task, medium-task, long-task]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: always()
     steps:
       - name: Generate ROI analysis
