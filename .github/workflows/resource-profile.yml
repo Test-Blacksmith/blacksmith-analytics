@@ -13,9 +13,7 @@ jobs:
           echo "## 💻 CPU Profile" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Hardware Specifications" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           lscpu | grep -E "Model name|Architecture|CPU\(s\)|Thread|MHz" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
       
       - name: CPU benchmark
         run: |
@@ -28,7 +26,6 @@ jobs:
           import time
           
           start = time.time()
-          # CPU-intensive computation
           result = sum(math.factorial(i % 20) for i in range(100000))
           duration = time.time() - start
           
@@ -51,9 +48,7 @@ jobs:
           echo "## 🧠 Memory Profile" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Available Memory" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           free -h >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
       
       - name: Memory benchmark
         run: |
@@ -64,12 +59,10 @@ jobs:
           import time
           import sys
           
-          # Allocation test
           start = time.time()
           large_list = [i**2 for i in range(5000000)]
           alloc_time = time.time() - start
           
-          # Memory operations test
           ops_start = time.time()
           result = sum(large_list[::100])
           ops_time = time.time() - ops_start
@@ -89,154 +82,46 @@ jobs:
       - name: Disk information
         run: |
           echo "## 💾 I/O Profile" >> $GITHUB_STEP_SUMMARY
-         echo "### Disk Space Available" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Disk Space Available" >> $GITHUB_STEP_SUMMARY
           df -h / >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
       
       - name: I/O benchmark
         run: |
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### I/O Benchmark Results" >> $GITHUB_STEP_SUMMARY
           
-          # Write test
-          echo "Running write test..."
           dd if=/dev/zero of=testfile bs=1M count=200 2>&1 | tee write.log
           WRITE=$(grep -oP '\d+\.?\d* MB/s' write.log | tail -1 || echo "N/A")
           
-          # Read test
-          echo "Running read test..."
           dd if=testfile of=/dev/null bs=1M 2>&1 | tee read.log
           READ=$(grep -oP '\d+\.?\d* MB/s' read.log | tail -1 || echo "N/A")
           
-          # Random I/O test
-          echo "Running random I/O test..."
-          dd if=/dev/urandom of=random.dat bs=4K count=10000 2>&1 | tee random.log
-          RANDOM=$(grep -oP '\d+\.?\d* MB/s' random.log | tail -1 || echo "N/A")
-          
           echo "- **Sequential write**: $WRITE" >> $GITHUB_STEP_SUMMARY
           echo "- **Sequential read**: $READ" >> $GITHUB_STEP_SUMMARY
-          echo "- **Random I/O**: $RANDOM" >> $GITHUB_STEP_SUMMARY
           echo "- **Test size**: 200MB" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ✅ I/O performance validated" >> $GITHUB_STEP_SUMMARY
           
-          rm -f testfile write.log read.log random.dat random.log
-
-  network-profile:
-    name: "Network Profiling"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Network benchmark
-        run: |
-          echo "## 🌐 Network Profile" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Network Benchmark Results" >> $GITHUB_STEP_SUMMARY
-          
-          # Download test
-          START=$(date +%s)
-          curl -s -o /dev/null -w "Downloaded in %{time_total}s at %{speed_download} bytes/sec\n" \
-            https://speed.cloudflare.com/__down?bytes=10000000 2>&1 | tee download.log
-          
-          DOWNLOAD_TIME=$(grep -oP '\d+\.\d+' download.log | head -1)
-          DOWNLOAD_SPEED=$(grep -oP '\d+' download.log | tail -1)
-          DOWNLOAD_MBPS=$(echo "scale=2; $DOWNLOAD_SPEED / 1024 / 1024" | bc)
-          
-          echo "- **Download test**: 10MB file" >> $GITHUB_STEP_SUMMARY
-          echo "- **Download time**: ${DOWNLOAD_TIME}s" >> $GITHUB_STEP_SUMMARY
-          echo "- **Download speed**: ${DOWNLOAD_MBPS} MB/s" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ✅ Network performance validated" >> $GITHUB_STEP_SUMMARY
-          
-          rm -f download.log
+          rm -f testfile write.log read.log
 
   summary:
     name: "Resource Analysis Summary"
-    needs: [cpu-profile, memory-profile, io-profile, network-profile]
+    needs: [cpu-profile, memory-profile, io-profile]
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Generate comprehensive analysis
+      - name: Generate analysis
         run: |
           echo "## 📊 Resource Utilization Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Performance Profile" >> $GITHUB_STEP_SUMMARY
-          echo "We profiled four key resources:" >> $GITHUB_STEP_SUMMARY
-          echo "1. **CPU** - Compute performance" >> $GITHUB_STEP_SUMMARY
-          echo "2. **Memory** - RAM allocation & operations" >> $GITHUB_STEP_SUMMARY
-          echo "3. **I/O** - Disk read/write speed" >> $GITHUB_STEP_SUMMARY
-          echo "4. **Network** - Download bandwidth" >> $GITHUB_STEP_SUMMARY
+          echo "### Bottleneck Analysis for CI/CD" >> $GITHUB_STEP_SUMMARY
+          echo "| Resource | % Bottlenecked | Optimization |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|----------------|--------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| I/O | 60% | Cache aggressively |" >> $GITHUB_STEP_SUMMARY
+          echo "| CPU | 30% | Parallelize tasks |" >> $GITHUB_STEP_SUMMARY
+          echo "| Memory | 8% | Split large jobs |" >> $GITHUB_STEP_SUMMARY
+          echo "| Network | 2% | Use CDN/mirrors |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Bottleneck Analysis for CI/CD Workloads" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Resource | % of Workloads Bottlenecked | Common Causes |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|----------------------------|---------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **I/O** | 60% | npm install, docker pulls, artifact downloads |" >> $GITHUB_STEP_SUMMARY
-          echo "| **CPU** | 30% | Compilation, test execution, builds |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Memory** | 8% | Large builds, parallel tests, docker |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Network** | 2% | Large downloads, geo-distant resources |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Optimization Strategy by Bottleneck" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**If I/O bound (60% of cases):**" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Aggressive caching (npm, pip, cargo)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Use SSD-backed storage" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Reduce dependency tree size" >> $GITHUB_STEP_SUMMARY
-          echo "- ❌ Adding CPU won't help" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "**If CPU bound (30% of cases):**" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Parallelize test suites" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Use matrix strategies" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Incremental compilation" >> $GITHUB_STEP_SUMMARY
-          echo "- ❌ Faster disk won't help" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "**If Memory bound (8% of cases):**" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Split large jobs into smaller ones" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Reduce parallel test workers" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Monitor for memory leaks" >> $GITHUB_STEP_SUMMARY
-          echo "- ❌ More CPU cores won't help" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### How to Identify YOUR Bottleneck" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "1. **Profile a typical workflow**" >> $GITHUB_STEP_SUMMARY
-          echo "2. **Time each phase** (checkout, install deps, build, test)" >> $GITHUB_STEP_SUMMARY
-          echo "3. **Find the longest phase** = your bottleneck" >> $GITHUB_STEP_SUMMARY
-          echo "4. **Optimize that phase** = biggest impact" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Example Analysis" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "Workflow breakdown:" >> $GITHUB_STEP_SUMMARY
-          echo "  Checkout:        5s  (4%)" >> $GITHUB_STEP_SUMMARY
-          echo "  npm install:    45s  (36%) ← BOTTLENECK" >> $GITHUB_STEP_SUMMARY
-          echo "  Build:          25s  (20%)" >> $GITHUB_STEP_SUMMARY
-          echo "  Test:           50s  (40%)" >> $GITHUB_STEP_SUMMARY
-          echo "  Total:         125s" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Diagnosis: I/O bound (npm install)" >> $GITHUB_STEP_SUMMARY
-          echo "Solution: Implement caching → 45s → 8s (37s saved, 30% faster)" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Blacksmith Advantage" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Consistent resources** - No noisy neighbors affecting performance" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Fast SSD storage** - Critical for I/O bound workloads" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Resource monitoring** - Dashboard shows actual utilization" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Predictable performance** - Same resources every run" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
           echo "### Key Insight" >> $GITHUB_STEP_SUMMARY
-          echo "**Most teams optimize blindly.**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "They add CPU when they're I/O bound." >> $GITHUB_STEP_SUMMARY
-          echo "They add memory when they're CPU bound." >> $GITHUB_STEP_SUMMARY
-          echo "They parallelize when they should cache." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Data-driven optimization requires profiling first.**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "This workflow shows you HOW to profile." >> $GITHUB_STEP_SUMMARY
-          echo "Blacksmith's dashboard shows you the results automatically." >> $GITHUB_STEP_SUMMARY
+          echo "Profile first, optimize second." >> $GITHUB_STEP_SUMMARY
+          echo "Most teams optimize blindly." >> $GITHUB_STEP_SUMMARY
