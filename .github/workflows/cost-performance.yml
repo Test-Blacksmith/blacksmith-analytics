@@ -1,0 +1,89 @@
+name: Cost-Performance Analysis
+
+on:
+  workflow_dispatch:
+
+jobs:
+  quick-task:
+    name: "Quick (30s)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Quick workload
+        run: |
+          START=$(date +%s)
+          sleep 30
+          END=$(date +%s)
+          echo "Duration: $((END - START))s" >> $GITHUB_STEP_SUMMARY
+          echo "Cost efficiency: Low (high overhead)" >> $GITHUB_STEP_SUMMARY
+
+  medium-task:
+    name: "Medium (5m)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Medium workload
+        run: |
+          START=$(date +%s)
+          for i in {1..10}; do
+            sleep 30
+          done
+          END=$(date +%s)
+          echo "Duration: $((END - START))s" >> $GITHUB_STEP_SUMMARY
+          echo "Cost efficiency: Optimal" >> $GITHUB_STEP_SUMMARY
+
+  long-task:
+    name: "Long (10m)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Long workload
+        run: |
+          START=$(date +%s)
+          for i in {1..20}; do
+            sleep 30
+          done
+          END=$(date +%s)
+          echo "Duration: $((END - START))s" >> $GITHUB_STEP_SUMMARY
+          echo "Cost efficiency: Good" >> $GITHUB_STEP_SUMMARY
+
+  cost-report:
+    name: "Cost Analysis"
+    needs: [quick-task, medium-task, long-task]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate ROI analysis
+        run: |
+          echo "## 💰 Cost-Performance Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Job Duration Impact on Cost Efficiency" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Duration | Startup Overhead | Efficiency | Recommendation |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|------------------|------------|----------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| <1min    | ~30%             | Poor       | Batch tasks    |" >> $GITHUB_STEP_SUMMARY
+          echo "| 2-5min   | ~10%             | Good       | ✅ Optimal     |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5-15min  | ~5%              | Excellent  | ✅ Great       |" >> $GITHUB_STEP_SUMMARY
+          echo "| >15min   | ~2%              | Good       | Consider split |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Key Insights" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Startup overhead**: 5-10s per job (runner provisioning)" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Sweet spot**: Jobs lasting 2-10 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "3. **Batching benefit**: Combine <1min tasks into single job" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ROI Calculation Framework" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "Faster Builds = Less Context Switching" >> $GITHUB_STEP_SUMMARY
+          echo "  → Higher developer productivity" >> $GITHUB_STEP_SUMMARY
+          echo "  → More deploys per day" >> $GITHUB_STEP_SUMMARY
+          echo "  → Faster time to market" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Cost saved = (Old time - New time) × Hourly rate × Builds/day" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Example:" >> $GITHUB_STEP_SUMMARY
+          echo "  15min → 8min = 7min saved" >> $GITHUB_STEP_SUMMARY
+          echo "  20 builds/day × 7min = 140min/day = 2.3 hours/day" >> $GITHUB_STEP_SUMMARY
+          echo "  @ $100/hour = $230/day = $60k/year per team" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Blacksmith Value Proposition" >> $GITHUB_STEP_SUMMARY
+          echo "- Consistent performance → Predictable costs" >> $GITHUB_STEP_SUMMARY
+          echo "- Detailed analytics → Identify optimization opportunities" >> $GITHUB_STEP_SUMMARY
+          echo "- Faster builds → ROI through developer productivity" >> $GITHUB_STEP_SUMMARY
